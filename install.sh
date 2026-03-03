@@ -10,8 +10,8 @@ REPO="FogMaly/openclaw-agents"
 BASE_URL="https://github.com/${REPO}/releases/download/${VERSION}"
 
 if [ -z "$PLATFORM" ]; then
-    echo "Usage: $0 [mac|nas|vps]"
-    echo "Example: curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | bash -s mac"
+    echo "Usage: $0 [mac|linux|nas|vps]"
+    echo "Example: curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | bash -s linux"
     exit 1
 fi
 
@@ -20,6 +20,11 @@ case "$PLATFORM" in
         PACKAGE="mac-v1.0.tar.gz"
         DIR="mac-v1.0"
         START_SCRIPT="start-mac.sh"
+        ;;
+    linux)
+        PACKAGE="linux-v1.0.tar.gz"
+        DIR="linux-v1.0"
+        START_SCRIPT="start-linux.sh"
         ;;
     nas)
         PACKAGE="nas-v1.0.tar.gz"
@@ -33,7 +38,7 @@ case "$PLATFORM" in
         ;;
     *)
         echo "Error: Unknown platform '$PLATFORM'"
-        echo "Supported: mac, nas, vps"
+        echo "Supported: mac, linux, nas, vps"
         exit 1
         ;;
 esac
