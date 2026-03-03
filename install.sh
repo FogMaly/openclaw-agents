@@ -86,18 +86,21 @@ echo ""
 
 # Interactive configuration for Mac/NAS
 if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "nas" ]; then
-    echo "🔧 Configuration Setup"
+    echo "🔧 配置向导"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
+    echo "请输入以下信息以连接到 VPS 服务器："
+    echo ""
     
-    read -p "📡 Enter VPS server address (e.g., 123.45.67.89:34061): " SERVER_ADDR
-    read -p "🔑 Enter authentication token: " TOKEN
-    read -p "🏷️  Enter agent ID (e.g., mac-agent-1): " AGENT_ID
+    read -p "📡 VPS 服务器地址 (例如: 123.45.67.89:34061): " SERVER_ADDR
+    read -p "🔑 认证 Token: " TOKEN
+    read -p "🏷️  Agent ID (例如: mac-agent-1): " AGENT_ID
     
     if [ -z "$SERVER_ADDR" ] || [ -z "$TOKEN" ] || [ -z "$AGENT_ID" ]; then
         echo ""
-        echo "⚠️  Configuration skipped (empty values)"
-        echo "📝 Please manually edit: $INSTALL_DIR/config.json"
+        echo "⚠️  配置已跳过（输入为空）"
+        echo "📝 请手动编辑配置文件: $INSTALL_DIR/config.json"
+        echo "📖 参考文档: https://github.com/${REPO}/blob/main/BINDING-GUIDE.md"
     else
         # Create config.json
         cat > "$INSTALL_DIR/config.json" << EOF
@@ -109,19 +112,19 @@ if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "nas" ]; then
 }
 EOF
         echo ""
-        echo "✅ Configuration saved to config.json"
+        echo "✅ 配置已保存到 config.json"
     fi
     
     echo ""
-    echo "🎯 To start the agent:"
+    echo "🎯 启动 Agent："
     echo "   cd $INSTALL_DIR"
     echo "   ./$START_SCRIPT"
 else
-    echo "🎯 Next steps:"
+    echo "🎯 下一步："
     echo "   cd $INSTALL_DIR"
-    echo "   See RELEASE.md for configuration"
+    echo "   查看 RELEASE.md 了解配置方法"
 fi
 
 echo ""
-echo "📖 Documentation: https://github.com/${REPO}"
-echo "📖 Binding Guide: https://github.com/${REPO}/blob/main/BINDING-GUIDE.md"
+echo "📖 项目文档: https://github.com/${REPO}"
+echo "📖 绑定指南: https://github.com/${REPO}/blob/main/BINDING-GUIDE.md"
