@@ -21,6 +21,8 @@ curl -fsSL https://raw.githubusercontent.com/FogMaly/openclaw-agents/main/instal
 curl -fsSL https://raw.githubusercontent.com/FogMaly/openclaw-agents/main/install.sh | bash -s vps
 ```
 
+> ⚠️ **安装后必读：** [如何绑定到服务端](BINDING-GUIDE.md)
+
 ## 📦 Manual Installation
 
 ### Mac
@@ -88,6 +90,7 @@ cp -r skills-auto-retry ~/.openclaw/workspace-fogid/skills/
 - [Mac Deployment Guide](mac-v1.0/README-mac.md)
 - [NAS Deployment Guide](nas-v1.0/README-nas.md)
 - [VPS Setup Guide](vps-v1.0/RELEASE.md)
+- [**Binding Guide - 如何绑定到服务端**](BINDING-GUIDE.md) ⭐
 - [Release Notes](RELEASE-NOTES.md)
 
 ## 🐛 Known Issues
