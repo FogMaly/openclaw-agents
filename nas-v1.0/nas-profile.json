@@ -1,0 +1,17 @@
+{
+  "profile": "nas-storage",
+  "features": {
+    "file_storage": true,
+    "backup": true,
+    "code_execution": false
+  },
+  "limits": {
+    "max_cpu_percent": 20,
+    "max_memory_mb": 512,
+    "max_disk_usage_percent": 80
+  },
+  "whitelist": {
+    "commands": ["rsync", "tar", "zip"],
+    "paths": ["/mnt/storage/**", "/backup/**"]
+  }
+}

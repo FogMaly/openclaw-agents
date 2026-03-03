@@ -1,0 +1,10 @@
+{
+  "max_retries": 3,
+  "retry_delays": [0, 2, 5],
+  "retry_on_errors": [
+    "timeout",
+    "Request was aborted",
+    "No response generated",
+    "All models failed"
+  ]
+}
