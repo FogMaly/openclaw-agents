@@ -129,27 +129,14 @@ if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "nas" ]; then
             if [[ "$SERVER_ADDR" == *":"* ]]; then
                 FULL_ADDR="$SERVER_ADDR"
             else
-                # Default to QUIC port
-                FULL_ADDR="${SERVER_ADDR}:34061"
-            fi
-            
-            # Download CA certificate
-            CA_URL="https://${SERVER_ADDR}/ca.pem"
-            echo "📥 下载 CA 证书..."
-            if curl -fsSL "$CA_URL" -o "$INSTALL_DIR/ca.pem" 2>/dev/null; then
-                echo "✅ CA 证书已下载"
-                CA_PATH="./ca.pem"
-            else
-                echo "⚠️  CA 证书下载失败，使用 /dev/null"
-                CA_PATH="/dev/null"
+                # Default to port 34060 (WebSocket)
+                FULL_ADDR="${SERVER_ADDR}:34060"
             fi
             
             # Create complete config with all required fields
             cat > "$INSTALL_DIR/config.json" << EOF
 {
   "server_addr": "$FULL_ADDR",
-  "server_name": "$SERVER_ADDR",
-  "ca_cert_path": "$CA_PATH",
   "agent_id": "$AGENT_ID",
   "token": "$TOKEN",
   "heartbeat_secs": 20,
