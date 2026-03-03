@@ -53,7 +53,22 @@ tar -xzf "${PACKAGE}"
 # Install
 INSTALL_DIR="$HOME/openclaw-agent"
 echo "📥 Installing to $INSTALL_DIR..."
-rm -rf "$INSTALL_DIR"
+
+# Check if already installed
+if [ -d "$INSTALL_DIR" ]; then
+    echo "⚠️  检测到已安装的版本"
+    
+    # Try to backup existing config
+    if [ -f "$INSTALL_DIR/config.json" ]; then
+        echo "💾 备份现有配置..."
+        cp "$INSTALL_DIR/config.json" "/tmp/openclaw-agent-config-backup.json"
+        BACKUP_EXISTS=true
+    fi
+    
+    echo "🔄 移除旧版本..."
+    rm -rf "$INSTALL_DIR"
+fi
+
 mv "$DIR" "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
@@ -89,30 +104,52 @@ if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "nas" ]; then
     echo "🔧 配置向导"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
-    echo "请输入以下信息以连接到 VPS 服务器："
-    echo ""
     
-    read -p "📡 VPS 服务器地址 (例如: 123.45.67.89:34061): " SERVER_ADDR < /dev/tty
-    read -p "🔑 认证 Token: " TOKEN < /dev/tty
-    read -p "🏷️  Agent ID (例如: mac-agent-1): " AGENT_ID < /dev/tty
-    
-    if [ -z "$SERVER_ADDR" ] || [ -z "$TOKEN" ] || [ -z "$AGENT_ID" ]; then
-        echo ""
-        echo "⚠️  配置已跳过（输入为空）"
-        echo "📝 请手动编辑配置文件: $INSTALL_DIR/config.json"
-        echo "📖 参考文档: https://github.com/${REPO}/blob/main/BINDING-GUIDE.md"
+    # Check if backup config exists
+    if [ "$BACKUP_EXISTS" = true ] && [ -f "/tmp/openclaw-agent-config-backup.json" ]; then
+        echo "✅ 检测到备份配置，正在恢复..."
+        cp "/tmp/openclaw-agent-config-backup.json" "$INSTALL_DIR/config.json"
+        rm -f "/tmp/openclaw-agent-config-backup.json"
+        echo "✅ 配置已恢复"
     else
-        # Create config.json
-        cat > "$INSTALL_DIR/config.json" << EOF
+        echo "请输入以下信息以连接到 VPS 服务器："
+        echo ""
+        
+        read -p "📡 VPS 服务器地址 (例如: oc.fogidc.com): " SERVER_ADDR < /dev/tty
+        read -p "🔑 认证 Token: " TOKEN < /dev/tty
+        read -p "🏷️  Agent ID (例如: mac-agent-1): " AGENT_ID < /dev/tty
+        
+        if [ -z "$SERVER_ADDR" ] || [ -z "$TOKEN" ] || [ -z "$AGENT_ID" ]; then
+            echo ""
+            echo "⚠️  配置已跳过（输入为空）"
+            echo "📝 请手动编辑配置文件: $INSTALL_DIR/config.json"
+            echo "📖 参考文档: https://github.com/${REPO}/blob/main/BINDING-GUIDE.md"
+        else
+            # Detect port and protocol
+            if [[ "$SERVER_ADDR" == *":"* ]]; then
+                FULL_ADDR="$SERVER_ADDR"
+            else
+                # Default to HTTPS port
+                FULL_ADDR="${SERVER_ADDR}:443"
+            fi
+            
+            # Create complete config with all required fields
+            cat > "$INSTALL_DIR/config.json" << EOF
 {
-  "server_addr": "$SERVER_ADDR",
-  "server_name": "openclaw-vps",
+  "server_addr": "$FULL_ADDR",
+  "server_name": "$SERVER_ADDR",
+  "ca_cert_path": "/dev/null",
+  "agent_id": "$AGENT_ID",
   "token": "$TOKEN",
-  "agent_id": "$AGENT_ID"
+  "heartbeat_secs": 20,
+  "reconnect_max_secs": 30,
+  "command_whitelist": ["git", "npm", "node", "cargo", "python3", "ls", "pwd", "echo", "cat", "mkdir", "rm", "cp", "mv"],
+  "file_path_whitelist": ["\$HOME", "/tmp"]
 }
 EOF
-        echo ""
-        echo "✅ 配置已保存到 config.json"
+            echo ""
+            echo "✅ 配置已保存到 config.json"
+        fi
     fi
     
     echo ""
