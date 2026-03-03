@@ -92,9 +92,9 @@ if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "nas" ]; then
     echo "请输入以下信息以连接到 VPS 服务器："
     echo ""
     
-    read -p "📡 VPS 服务器地址 (例如: 123.45.67.89:34061): " SERVER_ADDR
-    read -p "🔑 认证 Token: " TOKEN
-    read -p "🏷️  Agent ID (例如: mac-agent-1): " AGENT_ID
+    read -p "📡 VPS 服务器地址 (例如: 123.45.67.89:34061): " SERVER_ADDR < /dev/tty
+    read -p "🔑 认证 Token: " TOKEN < /dev/tty
+    read -p "🏷️  Agent ID (例如: mac-agent-1): " AGENT_ID < /dev/tty
     
     if [ -z "$SERVER_ADDR" ] || [ -z "$TOKEN" ] || [ -z "$AGENT_ID" ]; then
         echo ""
