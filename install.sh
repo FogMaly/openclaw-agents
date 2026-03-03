@@ -105,7 +105,7 @@ echo "📍 Installed to: $INSTALL_DIR"
 echo ""
 
 # Interactive configuration for Mac/Linux/NAS
-if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "linux" ] || [ "$PLATFORM" = "nas" ]; then
+if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "nas" ]; then
     echo "🔧 配置向导"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
