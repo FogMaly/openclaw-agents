@@ -84,7 +84,35 @@ echo ""
 echo "📍 Installed to: $INSTALL_DIR"
 echo ""
 
-if [ -n "$START_SCRIPT" ]; then
+# Interactive configuration for Mac/NAS
+if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "nas" ]; then
+    echo "🔧 Configuration Setup"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    
+    read -p "📡 Enter VPS server address (e.g., 123.45.67.89:34061): " SERVER_ADDR
+    read -p "🔑 Enter authentication token: " TOKEN
+    read -p "🏷️  Enter agent ID (e.g., mac-agent-1): " AGENT_ID
+    
+    if [ -z "$SERVER_ADDR" ] || [ -z "$TOKEN" ] || [ -z "$AGENT_ID" ]; then
+        echo ""
+        echo "⚠️  Configuration skipped (empty values)"
+        echo "📝 Please manually edit: $INSTALL_DIR/config.json"
+    else
+        # Create config.json
+        cat > "$INSTALL_DIR/config.json" << EOF
+{
+  "server_addr": "$SERVER_ADDR",
+  "server_name": "openclaw-vps",
+  "token": "$TOKEN",
+  "agent_id": "$AGENT_ID"
+}
+EOF
+        echo ""
+        echo "✅ Configuration saved to config.json"
+    fi
+    
+    echo ""
     echo "🎯 To start the agent:"
     echo "   cd $INSTALL_DIR"
     echo "   ./$START_SCRIPT"
@@ -96,3 +124,4 @@ fi
 
 echo ""
 echo "📖 Documentation: https://github.com/${REPO}"
+echo "📖 Binding Guide: https://github.com/${REPO}/blob/main/BINDING-GUIDE.md"
