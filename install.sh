@@ -120,23 +120,26 @@ if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "nas" ]; then
         echo "请输入以下信息以连接到 VPS 服务器："
         echo ""
         
-        read -p "📡 VPS 服务器地址 (例如: oc.fogidc.com): " SERVER_ADDR < /dev/tty
-        read -p "🔑 认证 Token: " TOKEN < /dev/tty
-        read -p "🏷️  Agent ID (例如: mac-agent-1): " AGENT_ID < /dev/tty
+        read -p "📡 VPS 服务器地址 (IP 或域名，例如: oc.fogidc.com): " SERVER_HOST < /dev/tty
+        read -p "🔌 服务器端口 (默认: 8080): " SERVER_PORT < /dev/tty
+        SERVER_PORT=${SERVER_PORT:-8080}
         
-        if [ -z "$SERVER_ADDR" ] || [ -z "$TOKEN" ] || [ -z "$AGENT_ID" ]; then
+        read -p "🏷️  Agent ID (例如: mac-agent-1): " AGENT_ID < /dev/tty
+        read -p "🔑 认证 Token: " TOKEN < /dev/tty
+        
+        if [ -z "$SERVER_HOST" ] || [ -z "$AGENT_ID" ] || [ -z "$TOKEN" ]; then
             echo ""
             echo "⚠️  配置已跳过（输入为空）"
             echo "📝 请手动编辑配置文件: $INSTALL_DIR/config.json"
             echo "📖 参考文档: https://github.com/${REPO}/blob/main/BINDING-GUIDE.md"
         else
-            # Detect port and protocol
-            if [[ "$SERVER_ADDR" == *":"* ]]; then
-                FULL_ADDR="$SERVER_ADDR"
-            else
-                # Default to port 34060 (WebSocket)
-                FULL_ADDR="${SERVER_ADDR}:34060"
-            fi
+            FULL_ADDR="${SERVER_HOST}:${SERVER_PORT}"
+            
+            echo ""
+            echo "📋 配置摘要："
+            echo "   服务器: $FULL_ADDR"
+            echo "   Agent ID: $AGENT_ID"
+            echo ""
             
             # Create complete config with all required fields
             cat > "$INSTALL_DIR/config.json" << EOF
