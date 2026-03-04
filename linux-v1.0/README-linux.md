@@ -122,15 +122,15 @@ tail -f agent.log
 ## 系统要求
 
 - Linux x86_64
-- glibc 2.17+
+- glibc 2.34+
 - 网络连接
 
 ## 支持的发行版
 
-- Ubuntu 18.04+
-- Debian 9+
-- CentOS 7+
-- RHEL 7+
-- Fedora 30+
+- Ubuntu 22.04+
+- Debian 12+
+- Rocky Linux 9+
+- Alma Linux 9+
+- Fedora 35+
 - Arch Linux
-- 其他现代 Linux 发行版
+- 其他使用 glibc 2.34+ 的现代 Linux 发行版
