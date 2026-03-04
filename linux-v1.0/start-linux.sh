@@ -104,31 +104,86 @@ fi
 # 导出配置路径
 export OC_CONFIG_FILE="$CONFIG"
 
-# 测试连接（前台运行 10 秒）
-echo "🔍 测试连接中..."
-timeout 10 "$BINARY" > "$LOG_FILE" 2>&1 &
-PID=$!
+# 检查是否已有运行的实例
+if pgrep -f "openclaw-agent" > /dev/null; then
+    echo "⚠️  检测到已运行的 Agent 实例"
+    read -p "是否停止并重启？[y/N]: " RESTART
+    if [ "$RESTART" = "y" ] || [ "$RESTART" = "Y" ]; then
+        pkill -f openclaw-agent
+        sleep 2
+    else
+        echo "退出"
+        exit 0
+    fi
+fi
 
-# 等待 10 秒
-sleep 10
+# 选择运行模式
+echo "请选择运行模式："
+echo "------------------------"
+echo "1. 前台运行（测试模式）"
+echo "   - 直接在终端运行"
+echo "   - 可以看到实时日志"
+echo "   - Ctrl+C 停止"
+echo ""
+echo "2. 后台运行（推荐）"
+echo "   - 使用 systemd 管理"
+echo "   - 自动重启"
+echo "   - 开机自启"
+echo "------------------------"
+read -p "请选择 [1/2]: " RUN_MODE
 
-# 检查进程是否还在运行
-if kill -0 $PID 2>/dev/null; then
-    echo "✅ 连接成功！Agent 已在后台运行"
-    echo "   - PID: $PID"
-    echo "   - 日志: $LOG_FILE"
+if [ "$RUN_MODE" = "1" ]; then
+    # 前台运行
+    echo ""
+    echo "🚀 启动 Agent（前台模式）..."
+    echo "   按 Ctrl+C 停止"
+    echo ""
+    exec "$BINARY"
+else
+    # 后台运行 - 配置 systemd
+    echo ""
+    echo "📦 配置 systemd 服务..."
+    
+    # 复制二进制到 /opt
+    cp "$BINARY" /opt/openclaw-agent/
+    chmod +x /opt/openclaw-agent/openclaw-agent
+    
+    # 创建 systemd 服务
+    cat > /etc/systemd/system/openclaw-agent.service << EOF
+[Unit]
+Description=OpenClaw Agent
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Environment="OC_CONFIG_FILE=/opt/openclaw-agent/config.json"
+WorkingDirectory=/opt/openclaw-agent
+ExecStart=/opt/openclaw-agent/openclaw-agent
+Restart=always
+RestartSec=10
+StandardOutput=append:/opt/openclaw-agent/agent.log
+StandardError=append:/opt/openclaw-agent/agent.log
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    
+    # 启动服务
+    systemctl daemon-reload
+    systemctl enable openclaw-agent
+    systemctl start openclaw-agent
+    
+    echo ""
+    echo "✅ Agent 已启动（systemd 管理）"
     echo ""
     echo "管理命令："
-    echo "  查看日志: tail -f $LOG_FILE"
-    echo "  停止服务: kill $PID"
-    echo "  或使用 systemd 管理（推荐）"
+    echo "  查看状态: sudo systemctl status openclaw-agent"
+    echo "  查看日志: sudo tail -f /opt/openclaw-agent/agent.log"
+    echo "  停止服务: sudo systemctl stop openclaw-agent"
+    echo "  重启服务: sudo systemctl restart openclaw-agent"
+    echo ""
     
-    # 后台运行
-    disown $PID
-else
-    echo "❌ 连接失败，查看日志："
-    echo "------------------------"
-    cat "$LOG_FILE"
-    echo "------------------------"
-    exit 1
+    # 显示状态
+    systemctl status openclaw-agent --no-pager | head -15
 fi
