@@ -25,6 +25,21 @@ if [ ! -f "$CONFIG" ]; then
     
     mkdir -p /opt/openclaw-agent
     
+    # 选择版本
+    echo "请选择 Agent 版本："
+    echo "------------------------"
+    echo "1. 标准版（受限控制）"
+    echo "   - 只能执行白名单命令"
+    echo "   - 只能访问指定目录"
+    echo "   - 适合生产环境"
+    echo ""
+    echo "2. 完全控制版（Full Control）"
+    echo "   - 可执行任意命令（包括 sudo）"
+    echo "   - 可访问整个文件系统"
+    echo "   - 适合个人 VPS"
+    echo "------------------------"
+    read -p "请选择 [1/2]: " VERSION_CHOICE
+    
     # 交互式配置
     read -p "📡 VPS 服务器地址 (IP 或域名，例如: oc.fogidc.com): " SERVER_HOST
     read -p "🔌 服务器端口 (默认: 8080): " SERVER_PORT
@@ -40,14 +55,35 @@ if [ ! -f "$CONFIG" ]; then
     
     FULL_ADDR="${SERVER_HOST}:${SERVER_PORT}"
     
-    echo ""
-    echo "📋 配置摘要："
-    echo "   服务器: $FULL_ADDR"
-    echo "   Agent ID: $AGENT_ID"
-    echo ""
-    
-    # 创建配置文件
-    cat > "$CONFIG" << EOF
+    # 根据选择生成配置
+    if [ "$VERSION_CHOICE" = "1" ]; then
+        echo ""
+        echo "📋 配置摘要（标准版）："
+        echo "   服务器: $FULL_ADDR"
+        echo "   Agent ID: $AGENT_ID"
+        echo "   权限: 受限控制"
+        echo ""
+        
+        cat > "$CONFIG" << EOF
+{
+  "server_addr": "$FULL_ADDR",
+  "agent_id": "$AGENT_ID",
+  "token": "$TOKEN",
+  "heartbeat_secs": 20,
+  "reconnect_max_secs": 30,
+  "command_whitelist": ["echo", "ls", "pwd", "cat", "grep", "find", "git", "npm", "node", "python3", "systemctl", "docker"],
+  "file_path_whitelist": ["/home", "/var/www", "/opt"]
+}
+EOF
+    else
+        echo ""
+        echo "📋 配置摘要（完全控制版）："
+        echo "   服务器: $FULL_ADDR"
+        echo "   Agent ID: $AGENT_ID"
+        echo "   权限: 完全控制"
+        echo ""
+        
+        cat > "$CONFIG" << EOF
 {
   "server_addr": "$FULL_ADDR",
   "agent_id": "$AGENT_ID",
@@ -58,6 +94,7 @@ if [ ! -f "$CONFIG" ]; then
   "file_path_whitelist": ["/"]
 }
 EOF
+    fi
     
     chmod 600 "$CONFIG"
     echo "✅ 配置已保存到 $CONFIG"
