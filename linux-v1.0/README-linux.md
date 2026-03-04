@@ -12,33 +12,16 @@
 tar -xzf linux-v1.0.tar.gz
 cd linux-v1.0
 
-# 2. 配置
-mkdir -p ~/.openclaw-agent
-cat > ~/.openclaw-agent/config.json << 'EOF'
-{
-  "server_addr": "154.40.43.33:8080",
-  "agent_id": "linux-agent-1",
-  "token": "0e1243a5240f94e51532cf46f7f30cae6e6558a9097c8145e2f199f26dbe3286",
-  "heartbeat_secs": 20,
-  "reconnect_max_secs": 30,
-  "command_whitelist": ["sh", "bash", "zsh", "sudo", "git", "npm", "node", "cargo", "python", "python3", "ls", "pwd", "echo", "cat", "mkdir", "rm", "cp", "mv", "curl", "wget", "systemctl", "docker", "apt", "yum", "dnf"],
-  "file_path_whitelist": ["/"]
-}
-EOF
-
-# 3. 启动
-chmod +x start-linux.sh
-./start-linux.sh
+# 2. 首次启动（需要 root 权限配置）
+sudo ./start-linux.sh
 ```
+
+首次启动时会提示输入配置信息，配置文件将保存到 `/opt/openclaw-agent/config.json`
 
 ## 配置说明
 
-### 完全权限配置
-- **command_whitelist**: 包含 shell、sudo、包管理器等
-- **file_path_whitelist**: `["/"]` = 整个文件系统
-
-### 自定义配置
-编辑 `~/.openclaw-agent/config.json`：
+### 配置文件位置
+`/opt/openclaw-agent/config.json`
 
 ```json
 {
@@ -64,8 +47,9 @@ After=network.target
 [Service]
 Type=simple
 User=root
+Environment="OC_CONFIG_FILE=/opt/openclaw-agent/config.json"
 WorkingDirectory=/opt/openclaw-agent
-ExecStart=/opt/openclaw-agent/start-linux.sh
+ExecStart=/opt/openclaw-agent/openclaw-agent
 Restart=always
 RestartSec=10
 
