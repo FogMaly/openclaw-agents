@@ -1,0 +1,12 @@
+#!/bin/bash
+# Mac agent health check
+set -euo pipefail
+
+LOG=/tmp/ws-server.log
+
+echo '== controller last mac lines =='
+grep -E 'mac|Agent registered: mac|Agent disconnected: mac|Heartbeat from mac' "$LOG" | tail -20 || true
+
+echo
+echo '== live exec test =='
+/usr/local/bin/mac echo healthcheck-ok || true

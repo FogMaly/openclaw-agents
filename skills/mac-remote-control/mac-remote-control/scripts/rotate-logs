@@ -1,0 +1,50 @@
+#!/bin/bash
+# Log rotation for Mac remote control system
+set -euo pipefail
+
+rotate_log() {
+  local log_file="$1"
+  local max_size_mb="${2:-100}"
+  local keep_days="${3:-7}"
+  
+  if [ ! -f "$log_file" ]; then
+    return
+  fi
+  
+  # Rotate by size
+  size_mb=$(du -m "$log_file" 2>/dev/null | cut -f1)
+  if [ "$size_mb" -gt "$max_size_mb" ]; then
+    mv "$log_file" "${log_file}.$(date +%Y%m%d-%H%M%S)"
+    touch "$log_file"
+    echo "[$(date '+%F %T')] Rotated $log_file (size: ${size_mb}MB)"
+  fi
+  
+  # Clean old backups
+  find "$(dirname "$log_file")" -name "$(basename "$log_file").*" -mtime +$keep_days -delete 2>/dev/null || true
+}
+
+# Linux logs
+rotate_log "/tmp/ws-server.log" 100 7
+rotate_log "/tmp/mac-monitor-alerts.log" 50 7
+
+# Mac logs (via remote control)
+/usr/local/bin/mac bash -c '
+  rotate_mac_log() {
+    local log_file="$1"
+    local max_size_mb="${2:-100}"
+    if [ ! -f "$log_file" ]; then return; fi
+    size_mb=$(du -m "$log_file" 2>/dev/null | cut -f1 || echo 0)
+    if [ "$size_mb" -gt "$max_size_mb" ]; then
+      mv "$log_file" "${log_file}.$(date +%Y%m%d-%H%M%S)"
+      touch "$log_file"
+      echo "Rotated $log_file"
+    fi
+    find "$(dirname "$log_file")" -name "$(basename "$log_file").*" -mtime +7 -delete 2>/dev/null || true
+  }
+  rotate_mac_log "/Users/jixiaoyi/openclaw-agent/agent-watchdog.log" 100
+  rotate_mac_log "/Users/jixiaoyi/openclaw-agent/agent-failure.log" 50
+  rotate_mac_log "/Users/jixiaoyi/openclaw-agent/launchd-watchdog.out.log" 50
+  rotate_mac_log "/Users/jixiaoyi/openclaw-agent/launchd-watchdog.err.log" 50
+' 2>&1 || echo "Mac log rotation failed (agent may be offline)"
+
+echo "[$(date '+%F %T')] Log rotation completed"

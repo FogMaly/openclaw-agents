@@ -1,0 +1,53 @@
+#!/bin/bash
+# Unified Mac remote control CLI
+set -euo pipefail
+
+API_URL="http://154.40.43.33:8080/api/exec"
+AGENT_ID="mac"
+CONTROL_TOKEN="control-secret-token"
+
+if [ $# -eq 0 ]; then
+  echo "用法: mac <command> [args...]"
+  exit 1
+fi
+
+COMMAND="$1"
+shift || true
+
+json_escape() {
+  python3 - <<'PY' "$1"
+import json,sys
+print(json.dumps(sys.argv[1]))
+PY
+}
+
+ARGS_JSON=""
+first=1
+for arg in "$@"; do
+  esc=$(json_escape "$arg")
+  if [ $first -eq 1 ]; then
+    ARGS_JSON="$esc"
+    first=0
+  else
+    ARGS_JSON="$ARGS_JSON,$esc"
+  fi
+done
+
+payload="{\"agent_id\":\"$AGENT_ID\",\"command\":$(json_escape "$COMMAND"),\"args\":[${ARGS_JSON}],\"control_token\":\"$CONTROL_TOKEN\",\"timeout\":30000}"
+
+resp=$(curl -s -X POST "$API_URL" -H 'Content-Type: application/json' -d "$payload")
+
+err=$(printf '%s' "$resp" | jq -r '.error // empty')
+if [ -n "$err" ]; then
+  echo "❌ 错误: $err" >&2
+  exit 1
+fi
+
+printf '%s' "$resp" | jq -r '.stdout // ""'
+stderr_out=$(printf '%s' "$resp" | jq -r '.stderr // empty')
+if [ -n "$stderr_out" ]; then
+  echo "$stderr_out" >&2
+fi
+
+exit_code=$(printf '%s' "$resp" | jq -r '.exit_code // 0')
+exit "$exit_code"
